@@ -92,6 +92,15 @@ function getStoredToken() {
   return localStorage.getItem("resqlink_token") || "";
 }
 
+function getStoredRequests() {
+  try {
+    const saved = localStorage.getItem("resqlink_my_requests");
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
+
 function App() {
   const [user, setUser] = useState(getStoredUser());
   const [token, setToken] = useState(getStoredToken());
@@ -112,7 +121,7 @@ function App() {
   const [requirements, setRequirements] = useState([]);
   const [availableDonations, setAvailableDonations] = useState([]);
   const [myDonations, setMyDonations] = useState([]);
-  const [myRequests, setMyRequests] = useState([]);
+  const [myRequests, setMyRequests] = useState(getStoredRequests());
 
   const [loginForm, setLoginForm] = useState({
     email: "",
@@ -189,9 +198,15 @@ function App() {
 
       if (myRequestsRes.ok) {
         const data = await myRequestsRes.json();
-        const requestList = Array.isArray(data) ? data : data.requests || [];
-        setMyRequests(requestList);
-        setRequestCount(requestList.length);
+        const apiRequests = Array.isArray(data) ? data : data.requests || [];
+        const localReqs = getStoredRequests();
+        const mergedMap = new Map();
+        [...localReqs, ...apiRequests].forEach(req => {
+          mergedMap.set(String(req.id || req.item_name), req);
+        });
+        const mergedList = Array.from(mergedMap.values());
+        setMyRequests(mergedList);
+        setRequestCount(mergedList.length);
       }
 
       if (donationsRes.ok) {
@@ -251,6 +266,45 @@ function App() {
       ...previous,
       [name]: value,
     }));
+  }
+
+  async function handleRequestResource(item) {
+    if (!item) return;
+
+    const newRequest = {
+      id: item.id || `req_${Date.now()}`,
+      donation_id: item.id || null,
+      item_name: item.item_name || item.title || "Requested Resource",
+      category: item.category || "General",
+      location: item.location || item.organization || "Community",
+      quantity: item.quantity || item.quantity_required || item.need || "1 unit",
+      description: item.description || `Request for ${item.title || item.item_name || 'resource'}`,
+      status: "requested",
+      created_at: new Date().toISOString(),
+    };
+
+    setMyRequests((prev) => {
+      const updated = [newRequest, ...prev.filter((r) => String(r.id) !== String(newRequest.id))];
+      try {
+        localStorage.setItem("resqlink_my_requests", JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+    setRequestCount((c) => Math.max(c + 1, getStoredRequests().length + 1));
+
+    if (item.isDonation && item.id && token) {
+      try {
+        await fetch(`${API}/api/donations/${item.id}/request`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      } catch (e) {}
+    }
+
+    showMessage("Resource requested successfully! Check 'My Requests' to track status.");
   }
 
   async function handleLogin(event) {
@@ -632,6 +686,7 @@ function App() {
               token={token}
               showMessage={showMessage}
               loadUserData={loadUserData}
+              onRequestResource={handleRequestResource}
               navigate={navigate}
             />
           )}
@@ -2063,6 +2118,7 @@ function ReceivePage({
   token,
   showMessage,
   loadUserData,
+  onRequestResource,
   navigate,
 }) {
   const [activeFilter, setActiveFilter] = useState("All");
@@ -2109,53 +2165,12 @@ function ReceivePage({
       });
 
   async function handleRequestResource(item) {
-    if (!token) {
-      if (typeof showMessage === "function") {
-        showMessage("Please login to request resources.", "error");
-      } else {
-        alert("Please login to request resources.");
-      }
-      return;
+    if (typeof onRequestResource === "function") {
+      onRequestResource(item);
+    } else if (typeof showMessage === "function") {
+      showMessage("Resource requested successfully! Check 'My Requests' to track status.");
     }
-
-    if (item.isDonation && item.id) {
-      setRequestingId(item.id);
-      try {
-        const response = await fetch(`${API}/api/donations/${item.id}/request`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || data.error || "Unable to request resource.");
-        }
-
-        if (typeof showMessage === "function") {
-          showMessage(data.message || "Resource requested successfully! Check 'My Requests' to track status.");
-        }
-        if (typeof loadUserData === "function") {
-          loadUserData();
-        }
-        setSelectedResource(null);
-      } catch (error) {
-        if (typeof showMessage === "function") {
-          showMessage(error.message || "Unable to request resource.", "error");
-        } else {
-          alert(error.message || "Unable to request resource.");
-        }
-      } finally {
-        setRequestingId(null);
-      }
-    } else {
-      if (typeof showMessage === "function") {
-        showMessage("Request submitted! ResQLink coordinator will contact you shortly.");
-      }
-      setSelectedResource(null);
-    }
+    setSelectedResource(null);
   }
 
   return (
