@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import "./admin.css";
 
-const API = "http://127.0.0.1:5000";
+const API = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
 
 function apiRequest(endpoint, options = {}) {
   const token = localStorage.getItem("token");
