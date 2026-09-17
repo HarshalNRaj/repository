@@ -110,6 +110,9 @@ function App() {
 
   const [organizations, setOrganizations] = useState([]);
   const [requirements, setRequirements] = useState([]);
+  const [availableDonations, setAvailableDonations] = useState([]);
+  const [myDonations, setMyDonations] = useState([]);
+  const [myRequests, setMyRequests] = useState([]);
 
   const [loginForm, setLoginForm] = useState({
     email: "",
@@ -154,51 +157,58 @@ function App() {
 
   async function loadUserData() {
     try {
-      const [donationsResponse, requirementsResponse, organizationsResponse] =
-        await Promise.all([
-          fetch(`${API}/api/donations/my`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }),
-          fetch(`${API}/api/requirements`),
-          fetch(`${API}/api/organizations`),
-        ]);
+      const [
+        myDonationsRes,
+        myRequestsRes,
+        donationsRes,
+        requirementsRes,
+        organizationsRes,
+      ] = await Promise.all([
+        fetch(`${API}/api/donations/my`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API}/api/requests/my`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API}/api/donations`),
+        fetch(`${API}/api/requirements`),
+        fetch(`${API}/api/organizations`),
+      ]);
 
-      if (donationsResponse.ok) {
-        const donations = await donationsResponse.json();
-
-        const donationList = Array.isArray(donations)
-          ? donations
-          : donations.donations || [];
-
+      if (myDonationsRes.ok) {
+        const data = await myDonationsRes.json();
+        const donationList = Array.isArray(data) ? data : data.donations || [];
+        setMyDonations(donationList);
         setDonationCount(donationList.length);
 
         const completed = donationList.filter(
-          (item) =>
-            String(item.status || "").toLowerCase() === "completed"
+          (item) => String(item.status || "").toLowerCase() === "completed"
         ).length;
-
         setCompletedCount(completed);
       }
 
-      if (requirementsResponse.ok) {
-        const data = await requirementsResponse.json();
+      if (myRequestsRes.ok) {
+        const data = await myRequestsRes.json();
+        const requestList = Array.isArray(data) ? data : data.requests || [];
+        setMyRequests(requestList);
+        setRequestCount(requestList.length);
+      }
 
-        const list = Array.isArray(data)
-          ? data
-          : data.requirements || [];
+      if (donationsRes.ok) {
+        const data = await donationsRes.json();
+        const list = Array.isArray(data) ? data : data.donations || [];
+        setAvailableDonations(list);
+      }
 
+      if (requirementsRes.ok) {
+        const data = await requirementsRes.json();
+        const list = Array.isArray(data) ? data : data.requirements || [];
         setRequirements(list);
       }
 
-      if (organizationsResponse.ok) {
-        const data = await organizationsResponse.json();
-
-        const list = Array.isArray(data)
-          ? data
-          : data.organizations || [];
-
+      if (organizationsRes.ok) {
+        const data = await organizationsRes.json();
+        const list = Array.isArray(data) ? data : data.organizations || [];
         setOrganizations(list);
       }
     } catch (error) {
@@ -618,6 +628,10 @@ function App() {
           {activePage === "receive" && (
             <ReceivePage
               requirements={requirements}
+              availableDonations={availableDonations}
+              token={token}
+              showMessage={showMessage}
+              loadUserData={loadUserData}
               navigate={navigate}
             />
           )}
@@ -639,6 +653,7 @@ function App() {
               subtitle="Track the resources you have shared with the community."
               icon="🎁"
               emptyText="Your donations will appear here."
+              items={myDonations}
             />
           )}
 
@@ -648,6 +663,7 @@ function App() {
               subtitle="Keep track of resources you have requested."
               icon="📋"
               emptyText="Your requests will appear here."
+              items={myRequests}
             />
           )}
 
@@ -2035,268 +2051,112 @@ function DonationPage({
 }
 
 /* =========================================================
-   RECEIVE
-========================================================= */
-
-function ReceivePage({
-  requirements,
-  navigate,
-}) {
-  const [activeFilter, setActiveFilter] = React.useState("All");
-  const [selectedResource, setSelectedResource] = React.useState(null);
-  const filters = ["All", "Clothes", "Books", "Food", "Education"];
-
-  const allItems =
-    requirements.length > 0
-      ? requirements
-      : SAMPLE_NEEDS;
-
-  const items = activeFilter === "All"
-    ? allItems
-    : allItems.filter((item) => {
-        const name = (item.item_name || item.title || "").toLowerCase();
-        const cat = (item.category || "").toLowerCase();
-        const filterLower = activeFilter.toLowerCase();
-        return name.includes(filterLower) || cat.includes(filterLower);
-      });
-
-  return (
-    <div className="inner-page">
-      <div className="page-heading-row">
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <button
-            type="button"
-            onClick={() => typeof navigate === "function" && navigate("home")}
-            style={{
-              background: "none",
-              border: "1.5px solid #cbd5e1",
-              borderRadius: "8px",
-              padding: "8px 12px",
-              cursor: "pointer",
-              fontSize: "18px",
-              color: "#475569",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              fontWeight: 600,
-              transition: "all 0.2s"
-            }}
-            title="Go back"
-          >
-            \u2190 Back
-          </button>
-          <div>
-            <div className="breadcrumb">
-              ResQLink <span>/</span> Receive
-            </div>
-            <h1>Find Resources</h1>
-            <p>
-              Explore community requirements and resources
-              available through ResQLink.
-            </p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className="primary-button"
-          onClick={() => navigate("donate")}
-        >
-          \U0001f381 Donate
-        </button>
-      </div>
-
-      <div className="filter-row">
-        {filters.map((f) => (
-          <button
-            key={f}
-            type="button"
-            className={`filter-chip ${activeFilter === f ? "active" : ""}`}
-            onClick={() => setActiveFilter(f)}
-          >
-            {f}
-          </button>
-        ))}
-      </div>
-
-      <div className="organization-grid">
-        {items.length === 0 ? (
-          <div className="empty-state-card" style={{ gridColumn: "1 / -1" }}>
-            <div className="empty-state-icon">&#128269;</div>
-            <h2>No resources found for "{activeFilter}"</h2>
-            <p>Try selecting a different category or check back later.</p>
-          </div>
-        ) : items.map((item, index) => {
-          const fallback = SAMPLE_NEEDS[index % SAMPLE_NEEDS.length];
-          const title = item.item_name || item.title || fallback.title;
-          const org = item.organization_name || item.organization || fallback.organization || "Community";
-          const qty = item.quantity_required || fallback.need;
-          const loc = item.location || fallback.location;
-          const type = item.organization_type || item.type || fallback.type;
-          const isUrgent = item.priority === "urgent";
-
-          return (
-            <article className="organization-card" key={item.id || index}>
-              <div
-                className="organization-cover"
-                style={{
-                  background: isUrgent
-                    ? "linear-gradient(135deg, #b33a1a, #8b2d14)"
-                    : "linear-gradient(135deg, #147d63, #0e5f4d)"
-                }}
-              >
-                <span style={{ fontSize: "36px" }}>{fallback.icon}</span>
-              </div>
-
-              <div className="organization-card-body">
-                <div className="organization-title-row">
-                  <h3>{title}</h3>
-                  <span
-                    style={{
-                      fontSize: "11px",
-                      fontWeight: 700,
-                      padding: "3px 10px",
-                      borderRadius: "20px",
-                      background: isUrgent ? "#fef2f2" : "#f0fdf4",
-                      color: isUrgent ? "#dc2626" : "#16a34a",
-                      border: `1px solid ${isUrgent ? "#fecaca" : "#bbf7d0"}`,
-                      whiteSpace: "nowrap"
-                    }}
-                  >
-                    {isUrgent ? "\u26a1 Urgent" : "\u2713 Open"}
-                  </span>
-                </div>
-
-                <p style={{ fontSize: "13px", color: "#4b5563", lineHeight: 1.5, margin: 0 }}>
-                  {item.description || `Need support with ${title}.`}
-                </p>
-
-                <div className="organization-meta">
-                  <span>&#127970; {type}</span>
-                  <span>&#128205; {loc}</span>
-                </div>
-
-                <div style={{ paddingTop: "4px" }}>
-                  <span style={{ fontSize: "12px", color: "#6b7f7a" }}>&#128230; {qty}</span>
-                </div>
-
-                <button
-                  type="button"
-                  style={{
-                    width: "100%",
-                    marginTop: "auto",
-                    padding: "10px 0",
-                    borderRadius: "10px",
-                    border: "1.5px solid #147d63",
-                    background: "transparent",
-                    color: "#147d63",
-                    fontWeight: 600,
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    transition: "all 0.2s"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#147d63";
-                    e.currentTarget.style.color = "#fff";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "transparent";
-                    e.currentTarget.style.color = "#147d63";
-                  }}
-                  onClick={() =>
-                    setSelectedResource({
-                      title, org, qty, loc,
-                      icon: fallback.icon, type,
-                      priority: item.priority,
-                      description: item.description || `Need support with ${title}.`
-                    })
-                  }
-                >
-                  View Details
-                </button>
-              </div>
-            </article>
-          );
-        })}
-      </div>
-
-      {selectedResource && (
-        <div className="modal-backdrop" onClick={() => setSelectedResource(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="brand-logo-row">
-                <span style={{ fontSize: "32px" }}>{selectedResource.icon}</span>
-                <div>
-                  <h3>{selectedResource.title}</h3>
-                  <span className="verified-badge">
-                    {selectedResource.type} &bull;{" "}
-                    {selectedResource.priority === "urgent" ? "\u26a1 Urgent" : "\u2713 Open"}
-                  </span>
-                </div>
-              </div>
-              <button
-                type="button"
-                className="modal-close"
-                onClick={() => setSelectedResource(null)}
-              >
-                &times;
-              </button>
-            </div>
-
-            <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "16px" }}>
-              <div>
-                <strong style={{ fontSize: "12px", color: "#8fa39e", textTransform: "uppercase" }}>Organization</strong>
-                <p style={{ marginTop: "4px", fontSize: "14px", color: "#173b35" }}>&#127970; {selectedResource.org}</p>
-              </div>
-              <div>
-                <strong style={{ fontSize: "12px", color: "#8fa39e", textTransform: "uppercase" }}>Description</strong>
-                <p style={{ marginTop: "4px", fontSize: "14px", color: "#173b35" }}>{selectedResource.description}</p>
-              </div>
-              <div>
-                <strong style={{ fontSize: "12px", color: "#8fa39e", textTransform: "uppercase" }}>Quantity Required</strong>
-                <p style={{ marginTop: "4px", fontSize: "14px", color: "#173b35" }}>&#128230; {selectedResource.qty}</p>
-              </div>
-              <div>
-                <strong style={{ fontSize: "12px", color: "#8fa39e", textTransform: "uppercase" }}>Location</strong>
-                <p style={{ marginTop: "4px", fontSize: "14px", color: "#173b35" }}>&#128205; {selectedResource.loc}</p>
-              </div>
-              <div style={{ background: "#f4faf7", padding: "16px", borderRadius: "12px", border: "1px solid #bce3d6" }}>
-                <strong style={{ color: "#147d63", fontSize: "14px" }}>How to Help</strong>
-                <p style={{ fontSize: "13px", color: "#2c594e", marginTop: "4px" }}>
-                  Click "Donate Now" to share this resource with the organization. Your donation will be coordinated through ResQLink.
-                </p>
-              </div>
-            </div>
-
-            <div style={{ marginTop: "24px", display: "flex", gap: "12px" }}>
-              <button
-                type="button"
-                className="primary-button full"
-                onClick={() => { setSelectedResource(null); navigate("donate"); }}
-              >
-                Donate Now \u2192
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* =========================================================
-   ORGANIZATIONS
+   RECEIVE
+
 ========================================================= */
 
-function OrganizationsPage({
-  organizations,
+
+
+function ReceivePage({
+  requirements = [],
+  availableDonations = [],
+  token,
+  showMessage,
+  loadUserData,
   navigate,
 }) {
-  const [selectedOrg, setSelectedOrg] = useState(null);
-  const items =
-    organizations.length > 0
-      ? organizations
-      : SAMPLE_ORGANIZATIONS;
+  const [activeFilter, setActiveFilter] = useState("All");
+  const [selectedResource, setSelectedResource] = useState(null);
+  const [requestingId, setRequestingId] = useState(null);
+  const filters = ["All", "Clothes", "Books", "Food", "Electronics", "Household"];
+
+  const combinedItems = useMemo(() => {
+    const donationItems = availableDonations.map((d) => ({
+      ...d,
+      isDonation: true,
+      title: d.item_name,
+      type: d.donation_type ? `Donation (${d.donation_type})` : "Community Donation",
+      organization: d.location ? `Location: ${d.location}` : "Community Donor",
+      need: `${d.quantity || 1} unit(s)`,
+      statusText: d.status || "available",
+      isAvailable: d.status === "available",
+      icon: d.category === "Clothes" ? "👕" : d.category === "Books" ? "📚" : d.category === "Food" ? "🍱" : d.category === "Electronics" ? "💻" : "🎁",
+    }));
+
+    const reqItems = requirements.map((r) => ({
+      ...r,
+      isRequirement: true,
+      title: r.item_name,
+      type: "NGO Requirement",
+      organization: r.organization_name || "NGO / Ashram",
+      need: `${r.quantity_required || 1} unit(s)`,
+      statusText: r.priority === "urgent" ? "Urgent" : "Open",
+      isAvailable: true,
+      icon: r.category === "Clothes" ? "👕" : r.category === "Books" ? "📚" : r.category === "Food" ? "🍱" : "📦",
+    }));
+
+    const all = [...donationItems, ...reqItems];
+    return all.length > 0 ? all : SAMPLE_NEEDS;
+  }, [availableDonations, requirements]);
+
+  const items = activeFilter === "All"
+    ? combinedItems
+    : combinedItems.filter((item) => {
+        const name = (item.item_name || item.title || "").toLowerCase();
+        const cat = (item.category || "").toLowerCase();
+        const filterLower = activeFilter.toLowerCase();
+        return name.includes(filterLower) || cat.includes(filterLower);
+      });
+
+  async function handleRequestResource(item) {
+    if (!token) {
+      if (typeof showMessage === "function") {
+        showMessage("Please login to request resources.", "error");
+      } else {
+        alert("Please login to request resources.");
+      }
+      return;
+    }
+
+    if (item.isDonation && item.id) {
+      setRequestingId(item.id);
+      try {
+        const response = await fetch(`${API}/api/donations/${item.id}/request`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || data.error || "Unable to request resource.");
+        }
+
+        if (typeof showMessage === "function") {
+          showMessage(data.message || "Resource requested successfully! Check 'My Requests' to track status.");
+        }
+        if (typeof loadUserData === "function") {
+          loadUserData();
+        }
+        setSelectedResource(null);
+      } catch (error) {
+        if (typeof showMessage === "function") {
+          showMessage(error.message || "Unable to request resource.", "error");
+        } else {
+          alert(error.message || "Unable to request resource.");
+        }
+      } finally {
+        setRequestingId(null);
+      }
+    } else {
+      if (typeof showMessage === "function") {
+        showMessage("Request submitted! ResQLink coordinator will contact you shortly.");
+      }
+      setSelectedResource(null);
+    }
+  }
 
   return (
     <div className="inner-page">
@@ -2325,120 +2185,213 @@ function OrganizationsPage({
           </button>
           <div>
             <div className="breadcrumb">
-              ResQLink <span>/</span> Organizations
+              ResQLink <span>/</span> Receive
             </div>
-
-            <h1>Verified Organizations</h1>
-
+            <h1>Receive & Request Resources</h1>
             <p>
-              Discover verified NGOs, ashrams and community
-              organizations.
+              Browse available community donations and NGO needs. Request items directly.
             </p>
           </div>
         </div>
+
+        <button
+          type="button"
+          className="primary-button"
+          onClick={() => navigate("donate")}
+        >
+          🎁 Donate Resource
+        </button>
+      </div>
+
+      <div className="filter-row">
+        {filters.map((f) => (
+          <button
+            key={f}
+            type="button"
+            className={`filter-chip ${activeFilter === f ? "active" : ""}`}
+            onClick={() => setActiveFilter(f)}
+          >
+            {f}
+          </button>
+        ))}
       </div>
 
       <div className="organization-grid">
-        {items.map((organization, index) => {
-          const fallback =
-            SAMPLE_ORGANIZATIONS[
-              index % SAMPLE_ORGANIZATIONS.length
-            ];
-          const name = organization.organization_name || organization.name || fallback.name;
-          const type = organization.organization_type || organization.type || fallback.type;
-          const icon = fallback.icon || "🏢";
+        {items.length === 0 ? (
+          <div className="empty-state-card" style={{ gridColumn: "1 / -1" }}>
+            <div className="empty-state-icon">🔍</div>
+            <h2>No resources found for "{activeFilter}"</h2>
+            <p>Try selecting a different category or check back later.</p>
+          </div>
+        ) : items.map((item, index) => {
+          const fallback = SAMPLE_NEEDS[index % SAMPLE_NEEDS.length];
+          const title = item.item_name || item.title || fallback.title;
+          const org = item.organization_name || item.organization || fallback.organization || "Community Donor";
+          const qty = item.need || item.quantity_required || `${item.quantity || 1} unit(s)`;
+          const loc = item.location || fallback.location;
+          const type = item.type || item.organization_type || fallback.type;
+          const isUrgent = item.priority === "urgent" || item.statusText === "urgent";
+          const isRequested = item.status === "requested";
 
           return (
-            <article
-              className="organization-card"
-              key={
-                organization.id ||
-                organization.user_id ||
-                index
-              }
-            >
-              <div className="organization-cover">
-                <span>{icon}</span>
+            <article className="organization-card" key={item.id || index}>
+              <div
+                className="organization-cover"
+                style={{
+                  background: isUrgent
+                    ? "linear-gradient(135deg, #b33a1a, #8b2d14)"
+                    : "linear-gradient(135deg, #147d63, #0e5f4d)"
+                }}
+              >
+                <span style={{ fontSize: "36px" }}>{item.icon || fallback.icon}</span>
               </div>
 
               <div className="organization-card-body">
                 <div className="organization-title-row">
-                  <div>
-                    <h3>{name}</h3>
-                    <span>{type}</span>
-                  </div>
-
-                  <div className="verified-badge">
-                    ✓ Verified
-                  </div>
+                  <h3>{title}</h3>
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      padding: "3px 10px",
+                      borderRadius: "20px",
+                      background: isUrgent ? "#fef2f2" : isRequested ? "#fffbe6" : "#f0fdf4",
+                      color: isUrgent ? "#dc2626" : isRequested ? "#d46b08" : "#16a34a",
+                      border: `1px solid ${isUrgent ? "#fecaca" : isRequested ? "#ffe58f" : "#bbf7d0"}`,
+                      whiteSpace: "nowrap",
+                      textTransform: "capitalize"
+                    }}
+                  >
+                    {isRequested ? "⏳ Requested" : isUrgent ? "⚡ Urgent" : "✓ Available"}
+                  </span>
                 </div>
 
-                <p>
-                  Supporting communities by connecting people
-                  with useful resources and assistance.
+                <p style={{ fontSize: "13px", color: "#4b5563", lineHeight: 1.5, margin: 0 }}>
+                  {item.description || `Resource available: ${title}`}
                 </p>
 
                 <div className="organization-meta">
-                  <span>📍 Community network</span>
-                  <span>🤝 Active</span>
+                  <span>🏢 {org}</span>
+                  <span>📍 {loc}</span>
                 </div>
 
-                <button
-                  type="button"
-                  className="secondary-button full"
-                  onClick={() => setSelectedOrg({ name, type, icon, address: organization.address || "Mysore, Karnataka", phone: organization.phone || "+91 98765 43210" })}
-                >
-                  View Organization
-                </button>
+                <div style={{ paddingTop: "4px" }}>
+                  <span>📦 {qty}</span>
+                </div>
+
+                <div style={{ marginTop: "auto", display: "flex", gap: "8px", paddingTop: "10px" }}>
+                  <button
+                    type="button"
+                    style={{
+                      flex: 1,
+                      padding: "8px 0",
+                      borderRadius: "8px",
+                      border: "1.5px solid #147d63",
+                      background: "transparent",
+                      color: "#147d63",
+                      fontWeight: 600,
+                      fontSize: "13px",
+                      cursor: "pointer",
+                    }}
+                    onClick={() =>
+                      setSelectedResource({
+                        ...item,
+                        title,
+                        org,
+                        qty,
+                        loc,
+                        type,
+                        description: item.description || `Resource available: ${title}`
+                      })
+                    }
+                  >
+                    View Details
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={isRequested || requestingId === item.id}
+                    style={{
+                      flex: 1,
+                      padding: "8px 0",
+                      borderRadius: "8px",
+                      border: "none",
+                      background: isRequested ? "#e2e8f0" : "#147d63",
+                      color: isRequested ? "#94a3b8" : "#fff",
+                      fontWeight: 600,
+                      fontSize: "13px",
+                      cursor: isRequested ? "not-allowed" : "pointer",
+                    }}
+                    onClick={() => handleRequestResource(item)}
+                  >
+                    {requestingId === item.id ? "Requesting..." : isRequested ? "Requested" : "Request"}
+                  </button>
+                </div>
               </div>
             </article>
           );
         })}
       </div>
 
-      {selectedOrg && (
-        <div className="modal-backdrop" onClick={() => setSelectedOrg(null)}>
+      {selectedResource && (
+        <div className="modal-backdrop" onClick={() => setSelectedResource(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div className="brand-logo-row">
-                <span style={{ fontSize: '32px' }}>{selectedOrg.icon}</span>
+                <span style={{ fontSize: "32px" }}>{selectedResource.icon || "📦"}</span>
                 <div>
-                  <h3>{selectedOrg.name}</h3>
-                  <span className="verified-badge">✓ Verified {selectedOrg.type}</span>
+                  <h3>{selectedResource.title}</h3>
+                  <span className="verified-badge">
+                    {selectedResource.type} • {selectedResource.status === "requested" ? "Requested" : "Available"}
+                  </span>
                 </div>
               </div>
-              <button type="button" className="modal-close" onClick={() => setSelectedOrg(null)}>×</button>
+              <button
+                type="button"
+                className="modal-close"
+                onClick={() => setSelectedResource(null)}
+              >
+                ×
+              </button>
             </div>
 
-            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
+            <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "16px" }}>
               <div>
-                <strong style={{ fontSize: '12px', color: '#8fa39e', textTransform: 'uppercase' }}>About Organization</strong>
-                <p style={{ marginTop: '4px', fontSize: '14px', color: '#173b35' }}>
-                  Registered community organization providing shelter, food, clothing, and educational supplies to underprivileged individuals.
-                </p>
+                <strong style={{ fontSize: "12px", color: "#8fa39e", textTransform: "uppercase" }}>Source / Organization</strong>
+                <p style={{ marginTop: "4px", fontSize: "14px", color: "#173b35" }}>🏢 {selectedResource.org}</p>
               </div>
-
               <div>
-                <strong style={{ fontSize: '12px', color: '#8fa39e', textTransform: 'uppercase' }}>Address & Location</strong>
-                <p style={{ marginTop: '4px', fontSize: '14px', color: '#173b35' }}>📍 {selectedOrg.address}</p>
+                <strong style={{ fontSize: "12px", color: "#8fa39e", textTransform: "uppercase" }}>Description</strong>
+                <p style={{ marginTop: "4px", fontSize: "14px", color: "#173b35" }}>{selectedResource.description}</p>
               </div>
-
               <div>
-                <strong style={{ fontSize: '12px', color: '#8fa39e', textTransform: 'uppercase' }}>Contact Information</strong>
-                <p style={{ marginTop: '4px', fontSize: '14px', color: '#173b35' }}>☎ {selectedOrg.phone}</p>
+                <strong style={{ fontSize: "12px", color: "#8fa39e", textTransform: "uppercase" }}>Quantity</strong>
+                <p style={{ marginTop: "4px", fontSize: "14px", color: "#173b35" }}>📦 {selectedResource.qty}</p>
               </div>
-
-              <div style={{ background: '#f4faf7', padding: '16px', borderRadius: '12px', border: '1px solid #bce3d6' }}>
-                <strong style={{ color: '#147d63', fontSize: '14px' }}>Active Requirements</strong>
-                <p style={{ fontSize: '13px', color: '#2c594e', marginTop: '4px' }}>
-                  This organization currently accepts Clothes, Food Supplies, and Educational Books.
+              <div>
+                <strong style={{ fontSize: "12px", color: "#8fa39e", textTransform: "uppercase" }}>Location</strong>
+                <p style={{ marginTop: "4px", fontSize: "14px", color: "#173b35" }}>📍 {selectedResource.loc}</p>
+              </div>
+              <div style={{ background: "#f4faf7", padding: "16px", borderRadius: "12px", border: "1px solid #bce3d6" }}>
+                <strong style={{ color: "#147d63", fontSize: "14px" }}>Request Information</strong>
+                <p style={{ fontSize: "13px", color: "#2c594e", marginTop: "4px" }}>
+                  Click "Request This Resource" to claim or request this item. Your request will be recorded and processed through ResQLink.
                 </p>
               </div>
             </div>
 
-            <div style={{ marginTop: '24px', display: 'flex', gap: '12px' }}>
-              <button type="button" className="primary-button full" onClick={() => setSelectedOrg(null)}>
-                Connect & Donate →
+            <div style={{ marginTop: "24px", display: "flex", gap: "12px" }}>
+              <button
+                type="button"
+                className="primary-button full"
+                disabled={selectedResource.status === "requested" || requestingId === selectedResource.id}
+                onClick={() => handleRequestResource(selectedResource)}
+              >
+                {requestingId === selectedResource.id
+                  ? "Submitting Request..."
+                  : selectedResource.status === "requested"
+                  ? "Already Requested"
+                  : "Request This Resource →"}
               </button>
             </div>
           </div>
@@ -3664,6 +3617,7 @@ function SimpleListPage({
   subtitle,
   icon,
   emptyText,
+  items = [],
 }) {
   return (
     <div className="inner-page">
@@ -3679,18 +3633,71 @@ function SimpleListPage({
         </div>
       </div>
 
-      <div className="empty-state-card">
-        <div className="empty-state-icon">
-          {icon}
+      {items.length === 0 ? (
+        <div className="empty-state-card">
+          <div className="empty-state-icon">
+            {icon}
+          </div>
+
+          <h2>{emptyText}</h2>
+
+          <p>
+            Your activity will appear here as you use
+            ResQLink.
+          </p>
         </div>
+      ) : (
+        <div className="organization-grid">
+          {items.map((item, idx) => (
+            <article className="organization-card" key={item.id || idx}>
+              <div
+                className="organization-cover"
+                style={{
+                  background: "linear-gradient(135deg, #147d63, #0e5f4d)"
+                }}
+              >
+                <span style={{ fontSize: "36px" }}>{icon}</span>
+              </div>
 
-        <h2>{emptyText}</h2>
+              <div className="organization-card-body">
+                <div className="organization-title-row">
+                  <h3>{item.item_name || item.title || "Resource"}</h3>
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      padding: "3px 10px",
+                      borderRadius: "20px",
+                      background: "#f0fdf4",
+                      color: "#16a34a",
+                      border: "1px solid #bbf7d0",
+                      whiteSpace: "nowrap",
+                      textTransform: "capitalize"
+                    }}
+                  >
+                    {item.status || "Active"}
+                  </span>
+                </div>
 
-        <p>
-          Your activity will appear here as you use
-          ResQLink.
-        </p>
-      </div>
+                <p style={{ fontSize: "13px", color: "#4b5563", lineHeight: 1.5, margin: 0 }}>
+                  {item.description || `Category: ${item.category || "General"}`}
+                </p>
+
+                <div className="organization-meta" style={{ marginTop: "12px" }}>
+                  <span>📦 Qty: {item.quantity || item.quantity_required || 1}</span>
+                  <span>📍 {item.location || "Community"}</span>
+                </div>
+
+                {item.created_at && (
+                  <div style={{ fontSize: "11px", color: "#6b7f7a", marginTop: "6px" }}>
+                    Date: {new Date(item.created_at).toLocaleDateString()}
+                  </div>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

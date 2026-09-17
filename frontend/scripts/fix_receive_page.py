@@ -1,42 +1,113 @@
-"""
-Fix ReceivePage to use organization-grid card style.
-Also handle GitHub push + gh-pages deployment.
-"""
 import re
 
-# Read file
-with open(r'c:\Users\harsh\Downloads\resqlink_fixed\resqlink\frontend\src\App.jsx', 'r', encoding='utf-8') as f:
-    text = f.read()
+file_path = r"c:/Users/harsh/Downloads/resqlink_fixed/resqlink/frontend/src/App.jsx"
 
-# The range to replace is from "   RECEIVE" section (line 2038) through closing "}" (line 2221)
-# We'll use a regex to capture the whole ReceivePage function and replace it
+with open(file_path, "r", encoding="utf-8") as f:
+    content = f.read()
 
-old_pattern = r'   RECEIVE\r\n={57} \*\/\r\n\r\nfunction ReceivePage\(\{[\s\S]*?\r\n\}'
+# Replace ReceivePage component
+old_receive_pattern = r"function ReceivePage\(\{[\s\S]*?\n\}\n\n/\* ==="
 
-new_receive_page = r'''   RECEIVE
-========================================================= */
-
-function ReceivePage({
-  requirements,
+new_receive_code = '''function ReceivePage({
+  requirements = [],
+  availableDonations = [],
+  token,
+  showMessage,
+  loadUserData,
   navigate,
 }) {
-  const [activeFilter, setActiveFilter] = React.useState("All");
-  const [selectedResource, setSelectedResource] = React.useState(null);
-  const filters = ["All", "Clothes", "Books", "Food", "Education"];
+  const [activeFilter, setActiveFilter] = useState("All");
+  const [selectedResource, setSelectedResource] = useState(null);
+  const [requestingId, setRequestingId] = useState(null);
+  const filters = ["All", "Clothes", "Books", "Food", "Electronics", "Household"];
 
-  const allItems =
-    requirements.length > 0
-      ? requirements
-      : SAMPLE_NEEDS;
+  const combinedItems = useMemo(() => {
+    const donationItems = availableDonations.map((d) => ({
+      ...d,
+      isDonation: true,
+      title: d.item_name,
+      type: d.donation_type ? `Donation (${d.donation_type})` : "Community Donation",
+      organization: d.location ? `Location: ${d.location}` : "Community Donor",
+      need: `${d.quantity || 1} unit(s)`,
+      statusText: d.status || "available",
+      isAvailable: d.status === "available",
+      icon: d.category === "Clothes" ? "👕" : d.category === "Books" ? "📚" : d.category === "Food" ? "🍱" : d.category === "Electronics" ? "💻" : "🎁",
+    }));
+
+    const reqItems = requirements.map((r) => ({
+      ...r,
+      isRequirement: true,
+      title: r.item_name,
+      type: "NGO Requirement",
+      organization: r.organization_name || "NGO / Ashram",
+      need: `${r.quantity_required || 1} unit(s)`,
+      statusText: r.priority === "urgent" ? "Urgent" : "Open",
+      isAvailable: true,
+      icon: r.category === "Clothes" ? "👕" : r.category === "Books" ? "📚" : r.category === "Food" ? "🍱" : "📦",
+    }));
+
+    const all = [...donationItems, ...reqItems];
+    return all.length > 0 ? all : SAMPLE_NEEDS;
+  }, [availableDonations, requirements]);
 
   const items = activeFilter === "All"
-    ? allItems
-    : allItems.filter((item) => {
+    ? combinedItems
+    : combinedItems.filter((item) => {
         const name = (item.item_name || item.title || "").toLowerCase();
         const cat = (item.category || "").toLowerCase();
         const filterLower = activeFilter.toLowerCase();
         return name.includes(filterLower) || cat.includes(filterLower);
       });
+
+  async function handleRequestResource(item) {
+    if (!token) {
+      if (typeof showMessage === "function") {
+        showMessage("Please login to request resources.", "error");
+      } else {
+        alert("Please login to request resources.");
+      }
+      return;
+    }
+
+    if (item.isDonation && item.id) {
+      setRequestingId(item.id);
+      try {
+        const response = await fetch(`${API}/api/donations/${item.id}/request`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || data.error || "Unable to request resource.");
+        }
+
+        if (typeof showMessage === "function") {
+          showMessage(data.message || "Resource requested successfully! Check 'My Requests' to track status.");
+        }
+        if (typeof loadUserData === "function") {
+          loadUserData();
+        }
+        setSelectedResource(null);
+      } catch (error) {
+        if (typeof showMessage === "function") {
+          showMessage(error.message || "Unable to request resource.", "error");
+        } else {
+          alert(error.message || "Unable to request resource.");
+        }
+      } finally {
+        setRequestingId(null);
+      }
+    } else {
+      if (typeof showMessage === "function") {
+        showMessage("Request submitted! ResQLink coordinator will contact you shortly.");
+      }
+      setSelectedResource(null);
+    }
+  }
 
   return (
     <div className="inner-page">
@@ -61,16 +132,15 @@ function ReceivePage({
             }}
             title="Go back"
           >
-            \u2190 Back
+            ← Back
           </button>
           <div>
             <div className="breadcrumb">
               ResQLink <span>/</span> Receive
             </div>
-            <h1>Find Resources</h1>
+            <h1>Receive & Request Resources</h1>
             <p>
-              Explore community requirements and resources
-              available through ResQLink.
+              Browse available community donations and NGO needs. Request items directly.
             </p>
           </div>
         </div>
@@ -80,7 +150,7 @@ function ReceivePage({
           className="primary-button"
           onClick={() => navigate("donate")}
         >
-          \U0001f381 Donate
+          🎁 Donate Resource
         </button>
       </div>
 
@@ -100,18 +170,19 @@ function ReceivePage({
       <div className="organization-grid">
         {items.length === 0 ? (
           <div className="empty-state-card" style={{ gridColumn: "1 / -1" }}>
-            <div className="empty-state-icon">&#128269;</div>
+            <div className="empty-state-icon">🔍</div>
             <h2>No resources found for "{activeFilter}"</h2>
             <p>Try selecting a different category or check back later.</p>
           </div>
         ) : items.map((item, index) => {
           const fallback = SAMPLE_NEEDS[index % SAMPLE_NEEDS.length];
           const title = item.item_name || item.title || fallback.title;
-          const org = item.organization_name || item.organization || fallback.organization || "Community";
-          const qty = item.quantity_required || fallback.need;
+          const org = item.organization_name || item.organization || fallback.organization || "Community Donor";
+          const qty = item.need || item.quantity_required || `${item.quantity || 1} unit(s)`;
           const loc = item.location || fallback.location;
-          const type = item.organization_type || item.type || fallback.type;
-          const isUrgent = item.priority === "urgent";
+          const type = item.type || item.organization_type || fallback.type;
+          const isUrgent = item.priority === "urgent" || item.statusText === "urgent";
+          const isRequested = item.status === "requested";
 
           return (
             <article className="organization-card" key={item.id || index}>
@@ -123,7 +194,7 @@ function ReceivePage({
                     : "linear-gradient(135deg, #147d63, #0e5f4d)"
                 }}
               >
-                <span style={{ fontSize: "36px" }}>{fallback.icon}</span>
+                <span style={{ fontSize: "36px" }}>{item.icon || fallback.icon}</span>
               </div>
 
               <div className="organization-card-body">
@@ -135,63 +206,78 @@ function ReceivePage({
                       fontWeight: 700,
                       padding: "3px 10px",
                       borderRadius: "20px",
-                      background: isUrgent ? "#fef2f2" : "#f0fdf4",
-                      color: isUrgent ? "#dc2626" : "#16a34a",
-                      border: `1px solid ${isUrgent ? "#fecaca" : "#bbf7d0"}`,
-                      whiteSpace: "nowrap"
+                      background: isUrgent ? "#fef2f2" : isRequested ? "#fffbe6" : "#f0fdf4",
+                      color: isUrgent ? "#dc2626" : isRequested ? "#d46b08" : "#16a34a",
+                      border: `1px solid ${isUrgent ? "#fecaca" : isRequested ? "#ffe58f" : "#bbf7d0"}`,
+                      whiteSpace: "nowrap",
+                      textTransform: "capitalize"
                     }}
                   >
-                    {isUrgent ? "\u26a1 Urgent" : "\u2713 Open"}
+                    {isRequested ? "⏳ Requested" : isUrgent ? "⚡ Urgent" : "✓ Available"}
                   </span>
                 </div>
 
                 <p style={{ fontSize: "13px", color: "#4b5563", lineHeight: 1.5, margin: 0 }}>
-                  {item.description || `Need support with ${title}.`}
+                  {item.description || `Resource available: ${title}`}
                 </p>
 
                 <div className="organization-meta">
-                  <span>&#127970; {type}</span>
-                  <span>&#128205; {loc}</span>
+                  <span>🏢 {org}</span>
+                  <span>📍 {loc}</span>
                 </div>
 
                 <div style={{ paddingTop: "4px" }}>
-                  <span style={{ fontSize: "12px", color: "#6b7f7a" }}>&#128230; {qty}</span>
+                  <span>📦 {qty}</span>
                 </div>
 
-                <button
-                  type="button"
-                  style={{
-                    width: "100%",
-                    marginTop: "auto",
-                    padding: "10px 0",
-                    borderRadius: "10px",
-                    border: "1.5px solid #147d63",
-                    background: "transparent",
-                    color: "#147d63",
-                    fontWeight: 600,
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    transition: "all 0.2s"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#147d63";
-                    e.currentTarget.style.color = "#fff";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "transparent";
-                    e.currentTarget.style.color = "#147d63";
-                  }}
-                  onClick={() =>
-                    setSelectedResource({
-                      title, org, qty, loc,
-                      icon: fallback.icon, type,
-                      priority: item.priority,
-                      description: item.description || `Need support with ${title}.`
-                    })
-                  }
-                >
-                  View Details
-                </button>
+                <div style={{ marginTop: "auto", display: "flex", gap: "8px", paddingTop: "10px" }}>
+                  <button
+                    type="button"
+                    style={{
+                      flex: 1,
+                      padding: "8px 0",
+                      borderRadius: "8px",
+                      border: "1.5px solid #147d63",
+                      background: "transparent",
+                      color: "#147d63",
+                      fontWeight: 600,
+                      fontSize: "13px",
+                      cursor: "pointer",
+                    }}
+                    onClick={() =>
+                      setSelectedResource({
+                        ...item,
+                        title,
+                        org,
+                        qty,
+                        loc,
+                        type,
+                        description: item.description || `Resource available: ${title}`
+                      })
+                    }
+                  >
+                    View Details
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={isRequested || requestingId === item.id}
+                    style={{
+                      flex: 1,
+                      padding: "8px 0",
+                      borderRadius: "8px",
+                      border: "none",
+                      background: isRequested ? "#e2e8f0" : "#147d63",
+                      color: isRequested ? "#94a3b8" : "#fff",
+                      fontWeight: 600,
+                      fontSize: "13px",
+                      cursor: isRequested ? "not-allowed" : "pointer",
+                    }}
+                    onClick={() => handleRequestResource(item)}
+                  >
+                    {requestingId === item.id ? "Requesting..." : isRequested ? "Requested" : "Request"}
+                  </button>
+                </div>
               </div>
             </article>
           );
@@ -203,12 +289,11 @@ function ReceivePage({
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div className="brand-logo-row">
-                <span style={{ fontSize: "32px" }}>{selectedResource.icon}</span>
+                <span style={{ fontSize: "32px" }}>{selectedResource.icon || "📦"}</span>
                 <div>
                   <h3>{selectedResource.title}</h3>
                   <span className="verified-badge">
-                    {selectedResource.type} &bull;{" "}
-                    {selectedResource.priority === "urgent" ? "\u26a1 Urgent" : "\u2713 Open"}
+                    {selectedResource.type} • {selectedResource.status === "requested" ? "Requested" : "Available"}
                   </span>
                 </div>
               </div>
@@ -217,31 +302,31 @@ function ReceivePage({
                 className="modal-close"
                 onClick={() => setSelectedResource(null)}
               >
-                &times;
+                ×
               </button>
             </div>
 
             <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "16px" }}>
               <div>
-                <strong style={{ fontSize: "12px", color: "#8fa39e", textTransform: "uppercase" }}>Organization</strong>
-                <p style={{ marginTop: "4px", fontSize: "14px", color: "#173b35" }}>&#127970; {selectedResource.org}</p>
+                <strong style={{ fontSize: "12px", color: "#8fa39e", textTransform: "uppercase" }}>Source / Organization</strong>
+                <p style={{ marginTop: "4px", fontSize: "14px", color: "#173b35" }}>🏢 {selectedResource.org}</p>
               </div>
               <div>
                 <strong style={{ fontSize: "12px", color: "#8fa39e", textTransform: "uppercase" }}>Description</strong>
                 <p style={{ marginTop: "4px", fontSize: "14px", color: "#173b35" }}>{selectedResource.description}</p>
               </div>
               <div>
-                <strong style={{ fontSize: "12px", color: "#8fa39e", textTransform: "uppercase" }}>Quantity Required</strong>
-                <p style={{ marginTop: "4px", fontSize: "14px", color: "#173b35" }}>&#128230; {selectedResource.qty}</p>
+                <strong style={{ fontSize: "12px", color: "#8fa39e", textTransform: "uppercase" }}>Quantity</strong>
+                <p style={{ marginTop: "4px", fontSize: "14px", color: "#173b35" }}>📦 {selectedResource.qty}</p>
               </div>
               <div>
                 <strong style={{ fontSize: "12px", color: "#8fa39e", textTransform: "uppercase" }}>Location</strong>
-                <p style={{ marginTop: "4px", fontSize: "14px", color: "#173b35" }}>&#128205; {selectedResource.loc}</p>
+                <p style={{ marginTop: "4px", fontSize: "14px", color: "#173b35" }}>📍 {selectedResource.loc}</p>
               </div>
               <div style={{ background: "#f4faf7", padding: "16px", borderRadius: "12px", border: "1px solid #bce3d6" }}>
-                <strong style={{ color: "#147d63", fontSize: "14px" }}>How to Help</strong>
+                <strong style={{ color: "#147d63", fontSize: "14px" }}>Request Information</strong>
                 <p style={{ fontSize: "13px", color: "#2c594e", marginTop: "4px" }}>
-                  Click "Donate Now" to share this resource with the organization. Your donation will be coordinated through ResQLink.
+                  Click "Request This Resource" to claim or request this item. Your request will be recorded and processed through ResQLink.
                 </p>
               </div>
             </div>
@@ -250,9 +335,14 @@ function ReceivePage({
               <button
                 type="button"
                 className="primary-button full"
-                onClick={() => { setSelectedResource(null); navigate("donate"); }}
+                disabled={selectedResource.status === "requested" || requestingId === selectedResource.id}
+                onClick={() => handleRequestResource(selectedResource)}
               >
-                Donate Now \u2192
+                {requestingId === selectedResource.id
+                  ? "Submitting Request..."
+                  : selectedResource.status === "requested"
+                  ? "Already Requested"
+                  : "Request This Resource →"}
               </button>
             </div>
           </div>
@@ -260,61 +350,112 @@ function ReceivePage({
       )}
     </div>
   );
-}'''
+}
 
-# Find start/end of the ReceivePage function precisely
-start_marker = "   RECEIVE\r\n========================================================= */\r\n\r\nfunction ReceivePage({"
-end_section_after = "function OrganizationsPage("
+/* ==='''
 
-start_idx = text.find(start_marker)
-end_idx = text.find(end_section_after)
+content, count = re.subn(old_receive_pattern, new_receive_code, content)
+print(f"ReceivePage replaced: {count} times")
 
-if start_idx == -1:
-    # try LF only
-    start_marker_lf = start_marker.replace("\r\n", "\n")
-    start_idx = text.find(start_marker_lf)
-    print(f"LF start idx: {start_idx}")
-else:
-    print(f"Found start at idx: {start_idx}")
+# Replace SimpleListPage component to accept items
+old_simple_pattern = r"function SimpleListPage\(\{[\s\S]*?\n\}\n\nfunction Field"
 
-if end_idx == -1:
-    end_section_after_lf = end_section_after
-    end_idx = text.find(end_section_after_lf)
-    
-print(f"end_idx: {end_idx}")
+new_simple_code = '''function SimpleListPage({
+  title,
+  subtitle,
+  icon,
+  emptyText,
+  items = [],
+}) {
+  return (
+    <div className="inner-page">
+      <div className="page-heading-row">
+        <div>
+          <div className="breadcrumb">
+            ResQLink <span>/</span> {title}
+          </div>
 
-if start_idx != -1 and end_idx != -1:
-    # Find the closing "}" of ReceivePage - it's just before "/* ====\n   ORGANIZATIONS"
-    # The section just before OrganizationsPage is "\r\n/* =========\n   ORGANIZATIONS"
-    section_divider = "/* =========================================================\r\n   ORGANIZATIONS"
-    div_idx = text.find(section_divider, start_idx)
-    if div_idx == -1:
-        section_divider = "/* =========================================================\n   ORGANIZATIONS"
-        div_idx = text.find(section_divider, start_idx)
-    
-    print(f"div_idx: {div_idx}")
-    
-    if div_idx != -1:
-        # Replace everything from start_marker to just before section_divider
-        # (the "\r\n\r\n" before section_divider belongs to what we're replacing)
-        receive_section = text[start_idx:div_idx]
-        print(f"Receive section length: {len(receive_section)}")
-        print(f"First 200 chars: {receive_section[:200]}")
-        print(f"Last 100 chars: {receive_section[-100:]}")
-        
-        # Build replacement with consistent \r\n endings
-        new_text = (
-            text[:start_idx] +
-            new_receive_page.replace("\n", "\r\n") +
-            "\r\n\r\n" +
-            text[div_idx:]
-        )
-        
-        with open(r'c:\Users\harsh\Downloads\resqlink_fixed\resqlink\frontend\src\App.jsx', 'w', encoding='utf-8') as f:
-            f.write(new_text)
-        
-        print("ReceivePage successfully replaced with org-grid style!")
-    else:
-        print("ERROR: Could not find section divider")
-else:
-    print(f"ERROR: start_idx={start_idx}, end_idx={end_idx}")
+          <h1>{title}</h1>
+
+          <p>{subtitle}</p>
+        </div>
+      </div>
+
+      {items.length === 0 ? (
+        <div className="empty-state-card">
+          <div className="empty-state-icon">
+            {icon}
+          </div>
+
+          <h2>{emptyText}</h2>
+
+          <p>
+            Your activity will appear here as you use
+            ResQLink.
+          </p>
+        </div>
+      ) : (
+        <div className="organization-grid">
+          {items.map((item, idx) => (
+            <article className="organization-card" key={item.id || idx}>
+              <div
+                className="organization-cover"
+                style={{
+                  background: "linear-gradient(135deg, #147d63, #0e5f4d)"
+                }}
+              >
+                <span style={{ fontSize: "36px" }}>{icon}</span>
+              </div>
+
+              <div className="organization-card-body">
+                <div className="organization-title-row">
+                  <h3>{item.item_name || item.title || "Resource"}</h3>
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      padding: "3px 10px",
+                      borderRadius: "20px",
+                      background: "#f0fdf4",
+                      color: "#16a34a",
+                      border: "1px solid #bbf7d0",
+                      whiteSpace: "nowrap",
+                      textTransform: "capitalize"
+                    }}
+                  >
+                    {item.status || "Active"}
+                  </span>
+                </div>
+
+                <p style={{ fontSize: "13px", color: "#4b5563", lineHeight: 1.5, margin: 0 }}>
+                  {item.description || `Category: ${item.category || "General"}`}
+                </p>
+
+                <div className="organization-meta" style={{ marginTop: "12px" }}>
+                  <span>📦 Qty: {item.quantity || item.quantity_required || 1}</span>
+                  <span>📍 {item.location || "Community"}</span>
+                </div>
+
+                {item.created_at && (
+                  <div style={{ fontSize: "11px", color: "#6b7f7a", marginTop: "6px" }}>
+                    Date: {new Date(item.created_at).toLocaleDateString()}
+                  </div>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Field'''
+
+content, count2 = re.subn(old_simple_pattern, new_simple_code, content)
+print(f"SimpleListPage replaced: {count2} times")
+
+with open(file_path, "w", encoding="utf-8") as f:
+    f.write(content)
+
+print("Done updating App.jsx!")

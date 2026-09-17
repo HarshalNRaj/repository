@@ -1257,6 +1257,44 @@ def request_donation(donation_id):
     ), 201
 
 
+@app.route("/api/requests/my", methods=["GET"])
+@jwt_required()
+def get_my_requests():
+    user = get_current_user()
+    if not user:
+        return jsonify({"message": "User not found."}), 404
+
+    user_requests = Request.query.filter_by(
+        requester_id=user.id
+    ).order_by(
+        Request.created_at.desc()
+    ).all()
+
+    result = []
+    for req in user_requests:
+        donation = db.session.get(Donation, req.donation_id) if req.donation_id else None
+        result.append(
+            {
+                "id": req.id,
+                "donation_id": req.donation_id,
+                "status": req.status,
+                "created_at": req.created_at.isoformat() if req.created_at else None,
+                "item_name": donation.item_name if donation else "Requested Resource",
+                "category": donation.category if donation else "General",
+                "location": donation.location if donation else "Community",
+                "quantity": donation.quantity if donation else 1,
+                "description": donation.description if donation else "",
+            }
+        )
+
+    return jsonify(
+        {
+            "requests": result,
+            "count": len(result),
+        }
+    )
+
+
 # ============================================================
 # UPLOADS
 # ============================================================
