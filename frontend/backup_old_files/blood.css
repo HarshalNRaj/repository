@@ -1,0 +1,425 @@
+.blood-app {
+  min-height: 100vh;
+  display: flex;
+  background: #fff7f7;
+  color: #302020;
+}
+
+.blood-sidebar {
+  width: 245px;
+  background: white;
+  border-right: 1px solid #f0dddd;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.blood-logo {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 35px;
+  padding: 8px;
+}
+
+.blood-logo-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  background: #c93645;
+  color: white;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 24px;
+}
+
+.blood-logo strong {
+  display: block;
+  font-size: 18px;
+}
+
+.blood-logo span {
+  color: #998181;
+  font-size: 12px;
+}
+
+.blood-sidebar nav {
+  display: grid;
+  gap: 7px;
+}
+
+.blood-sidebar nav button,
+.blood-logout {
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 13px 14px;
+  border-radius: 11px;
+  cursor: pointer;
+  color: #705e60;
+  font-size: 14px;
+}
+
+.blood-sidebar nav button:hover,
+.blood-sidebar nav button.active {
+  background: #fff0f1;
+  color: #bc3342;
+  font-weight: 700;
+}
+
+.blood-logout {
+  margin-top: auto;
+  color: #a34d55 !important;
+}
+
+.blood-main {
+  flex: 1;
+  padding: 34px;
+  max-width: 1400px;
+}
+
+.blood-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 28px;
+}
+
+.blood-eyebrow {
+  color: #c33747;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.blood-header h1 {
+  margin: 5px 0;
+  font-size: 30px;
+}
+
+.blood-header p {
+  color: #927e80;
+}
+
+.blood-verified {
+  background: #ffecee;
+  color: #b93242;
+  padding: 10px 15px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.blood-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.blood-stat,
+.blood-card {
+  background: white;
+  border: 1px solid #f0dfdf;
+  border-radius: 18px;
+  box-shadow: 0 5px 20px rgba(100, 30, 40, .04);
+}
+
+.blood-stat {
+  padding: 21px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.blood-stat > span {
+  font-size: 25px;
+}
+
+.blood-stat small {
+  display: block;
+  color: #9a8788;
+  margin-bottom: 5px;
+}
+
+.blood-stat strong {
+  font-size: 25px;
+}
+
+.urgent-stat strong {
+  color: #c63746;
+}
+
+.blood-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.blood-card {
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.blood-card-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.blood-card-title h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.blood-card-title p {
+  margin: 6px 0 0;
+  color: #9a898a;
+  font-size: 13px;
+}
+
+.blood-card-title button {
+  border: 0;
+  background: #fff0f1;
+  color: #b93343;
+  border-radius: 9px;
+  padding: 9px 13px;
+  cursor: pointer;
+}
+
+.blood-mini-list {
+  display: grid;
+  gap: 8px;
+}
+
+.blood-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 13px;
+  border-radius: 10px;
+  background: #fff8f8;
+}
+
+.blood-row span {
+  color: #917e80;
+}
+
+.blood-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.blood-actions button {
+  border: 1px solid #f0dddd;
+  background: #fffafa;
+  border-radius: 10px;
+  padding: 13px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.blood-flow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+}
+
+.blood-flow div {
+  display: grid;
+  gap: 8px;
+  font-size: 27px;
+}
+
+.blood-flow span {
+  font-size: 12px;
+  color: #8c797b;
+}
+
+.blood-flow b {
+  color: #d19ba0;
+}
+
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.inventory-card {
+  text-align: center;
+  padding: 25px 15px;
+  background: #fff7f8;
+  border-radius: 14px;
+  border: 1px solid #f2dddd;
+}
+
+.blood-type {
+  color: #c43848;
+  font-size: 23px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.inventory-card strong {
+  display: block;
+  font-size: 30px;
+}
+
+.inventory-card span {
+  color: #948182;
+  font-size: 12px;
+}
+
+.blood-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.blood-form label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.blood-form input,
+.blood-form select {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #eadada;
+  border-radius: 10px;
+  font: inherit;
+}
+
+.blood-primary {
+  border: 0;
+  background: #c43848;
+  color: white;
+  padding: 13px 18px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.blood-request-list {
+  display: grid;
+  gap: 12px;
+}
+
+.blood-request {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  border: 1px solid #f0dfdf;
+  padding: 17px;
+  border-radius: 13px;
+}
+
+.urgent-request {
+  border-left: 5px solid #c43848;
+}
+
+.request-type {
+  font-size: 28px;
+}
+
+.request-info {
+  flex: 1;
+  display: grid;
+  gap: 4px;
+}
+
+.request-info h3 {
+  margin: 0;
+}
+
+.request-info span {
+  color: #897779;
+  font-size: 13px;
+}
+
+.request-right {
+  display: grid;
+  gap: 8px;
+  text-align: right;
+}
+
+.request-right select {
+  border: 1px solid #eadada;
+  border-radius: 8px;
+  padding: 7px;
+}
+
+.request-status {
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.request-status.fulfilled {
+  color: #24765e;
+}
+
+.request-status.pending {
+  color: #b27118;
+}
+
+.request-status.processing {
+  color: #aa4d57;
+}
+
+.empty-blood {
+  padding: 35px;
+  text-align: center;
+  color: #998687;
+}
+
+@media (max-width: 900px) {
+  .blood-stats,
+  .blood-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .blood-sidebar {
+    width: 190px;
+  }
+
+  .inventory-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 650px) {
+  .blood-app {
+    display: block;
+  }
+
+  .blood-sidebar {
+    width: auto;
+  }
+
+  .blood-main {
+    padding: 18px;
+  }
+
+  .blood-stats,
+  .blood-grid,
+  .blood-form,
+  .inventory-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .blood-header {
+    display: block;
+  }
+
+  .blood-request {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

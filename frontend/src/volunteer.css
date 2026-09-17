@@ -1,0 +1,1076 @@
+/* =========================================================
+   RESQLINK — VOLUNTEER DASHBOARD
+   ========================================================= */
+
+.volunteer-app {
+  min-height: 100vh;
+  display: flex;
+  background: #f5faf8;
+  color: #183b32;
+}
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+.vol-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-right: 1px solid #dce9e4;
+  z-index: 100;
+}
+
+.vol-brand {
+  height: 78px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 24px;
+  border-bottom: 1px solid #edf3f0;
+}
+
+.vol-brand-mark {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: #197d65;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 800;
+  box-shadow: 0 5px 14px rgba(25, 125, 101, 0.2);
+}
+
+.vol-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.vol-brand-title {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.vol-brand-subtitle {
+  margin-top: 4px;
+  color: #81938e;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+/* Navigation */
+
+.vol-nav {
+  flex: 1;
+  padding: 22px 14px;
+  overflow-y: auto;
+}
+
+.vol-nav-label {
+  padding: 0 12px 9px;
+  color: #9aa9a5;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.vol-nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 5px;
+  padding: 11px 13px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #61756f;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.vol-nav-item:hover {
+  background: #f0f7f4;
+  color: #197d65;
+}
+
+.vol-nav-item.active {
+  background: #e6f5ef;
+  color: #197d65;
+  font-weight: 700;
+}
+
+.vol-nav-icon {
+  width: 23px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.vol-sidebar-bottom {
+  padding: 14px;
+  border-top: 1px solid #edf3f0;
+}
+
+.vol-logout {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #9a5a60;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.vol-logout:hover {
+  background: #fff0f1;
+}
+
+/* =========================================================
+   MAIN AREA
+   ========================================================= */
+
+.vol-main {
+  width: calc(100% - 250px);
+  min-height: 100vh;
+  margin-left: 250px;
+}
+
+.vol-topbar {
+  height: 78px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 34px;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid #dce9e4;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.vol-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.vol-page-title {
+  font-family: "DM Sans", Arial, sans-serif;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.vol-page-subtitle {
+  margin-top: 3px;
+  color: #81938e;
+  font-size: 11px;
+}
+
+.vol-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.vol-notification {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dce9e4;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #61756f;
+  font-size: 16px;
+}
+
+.vol-notification:hover {
+  background: #f0f7f4;
+  color: #197d65;
+}
+
+.vol-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 14px;
+  border-left: 1px solid #e4ece9;
+}
+
+.vol-avatar {
+  width: 37px;
+  height: 37px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #dcefe8;
+  color: #197d65;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.vol-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.vol-user-name {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.vol-user-role {
+  margin-top: 2px;
+  color: #81938e;
+  font-size: 10px;
+}
+
+/* =========================================================
+   CONTENT
+   ========================================================= */
+
+.vol-content {
+  padding: 30px 34px 50px;
+  max-width: 1450px;
+}
+
+.vol-welcome {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 25px;
+  margin-bottom: 26px;
+}
+
+.vol-welcome h1 {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.vol-welcome p {
+  max-width: 650px;
+  margin-top: 7px;
+  color: #6f817c;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.vol-welcome-action {
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   STAT CARDS
+   ========================================================= */
+
+.vol-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 25px;
+}
+
+.vol-stat-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 135px;
+  padding: 19px;
+  border: 1px solid #dce9e4;
+  border-radius: 15px;
+  background: #ffffff;
+  box-shadow: 0 3px 12px rgba(24, 59, 50, 0.045);
+}
+
+.vol-stat-card::after {
+  content: "";
+  position: absolute;
+  width: 85px;
+  height: 85px;
+  right: -30px;
+  bottom: -35px;
+  border-radius: 50%;
+  background: #eef8f4;
+}
+
+.vol-stat-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.vol-stat-label {
+  color: #758781;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.vol-stat-icon {
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #e6f5ef;
+  color: #197d65;
+  font-size: 15px;
+}
+
+.vol-stat-value {
+  margin-top: 17px;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.vol-stat-note {
+  margin-top: 5px;
+  color: #81938e;
+  font-size: 10px;
+}
+
+/* =========================================================
+   SECTION HEADERS
+   ========================================================= */
+
+.vol-section {
+  margin-top: 25px;
+}
+
+.vol-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 13px;
+}
+
+.vol-section-title {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.vol-section-subtitle {
+  margin-top: 3px;
+  color: #83938e;
+  font-size: 11px;
+}
+
+.vol-link-button {
+  border: none;
+  background: transparent;
+  color: #197d65;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.vol-link-button:hover {
+  color: #12634f;
+  text-decoration: underline;
+}
+
+/* =========================================================
+   TASK CARDS
+   ========================================================= */
+
+.vol-task-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.vol-task-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 245px;
+  padding: 18px;
+  border: 1px solid #dce9e4;
+  border-radius: 15px;
+  background: #ffffff;
+  box-shadow: 0 3px 12px rgba(24, 59, 50, 0.045);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.vol-task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 9px 24px rgba(24, 59, 50, 0.08);
+}
+
+.vol-task-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.vol-task-category {
+  color: #197d65;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.vol-task-title {
+  margin-top: 5px;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.vol-task-description {
+  margin-top: 9px;
+  color: #6e817b;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.vol-task-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-top: 15px;
+}
+
+.vol-task-detail {
+  padding: 9px 10px;
+  border-radius: 9px;
+  background: #f6faf8;
+}
+
+.vol-task-detail-label {
+  color: #91a19c;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.vol-task-detail-value {
+  margin-top: 3px;
+  color: #35534a;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.vol-task-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 15px;
+}
+
+.vol-task-actions {
+  display: flex;
+  gap: 7px;
+}
+
+.vol-task-actions .btn {
+  padding: 8px 11px;
+  font-size: 11px;
+}
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.vol-table-card {
+  overflow: hidden;
+  border: 1px solid #dce9e4;
+  border-radius: 15px;
+  background: #ffffff;
+  box-shadow: 0 3px 12px rgba(24, 59, 50, 0.045);
+}
+
+.vol-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.vol-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 680px;
+}
+
+.vol-table th {
+  padding: 13px 16px;
+  border-bottom: 1px solid #e6efec;
+  background: #f8fbfa;
+  color: #84948f;
+  font-size: 10px;
+  font-weight: 800;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.vol-table td {
+  padding: 15px 16px;
+  border-bottom: 1px solid #edf3f1;
+  color: #405b53;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.vol-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.vol-table tbody tr:hover {
+  background: #fbfdfc;
+}
+
+/* =========================================================
+   PROFILE
+   ========================================================= */
+
+.vol-profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 18px;
+}
+
+.vol-profile-card {
+  padding: 22px;
+  border: 1px solid #dce9e4;
+  border-radius: 15px;
+  background: #ffffff;
+  box-shadow: 0 3px 12px rgba(24, 59, 50, 0.045);
+}
+
+.vol-profile-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #edf3f0;
+}
+
+.vol-profile-avatar {
+  width: 58px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #dcefe8;
+  color: #197d65;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.vol-profile-name {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.vol-profile-role {
+  margin-top: 4px;
+  color: #81938e;
+  font-size: 11px;
+}
+
+.vol-profile-details {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  padding-top: 18px;
+}
+
+.vol-profile-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.vol-profile-label {
+  color: #8a9a95;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.vol-profile-value {
+  max-width: 65%;
+  color: #405b53;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: right;
+}
+
+/* =========================================================
+   VERIFICATION FORM
+   ========================================================= */
+
+.vol-form-card {
+  padding: 23px;
+  border: 1px solid #dce9e4;
+  border-radius: 15px;
+  background: #ffffff;
+  box-shadow: 0 3px 12px rgba(24, 59, 50, 0.045);
+}
+
+.vol-form-title {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.vol-form-description {
+  margin-top: 5px;
+  color: #7b8d87;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.vol-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 19px;
+}
+
+.vol-form-grid .full {
+  grid-column: 1 / -1;
+}
+
+.vol-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+/* =========================================================
+   ALERTS / EMPTY STATES
+   ========================================================= */
+
+.vol-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-bottom: 18px;
+  padding: 13px 15px;
+  border: 1px solid #dce9e4;
+  border-radius: 11px;
+  background: #ffffff;
+  color: #536a62;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.vol-alert.success {
+  border-color: #c9e7db;
+  background: #effaf5;
+  color: #26745e;
+}
+
+.vol-alert.error {
+  border-color: #f0cfd2;
+  background: #fff3f4;
+  color: #a6434c;
+}
+
+.vol-alert.warning {
+  border-color: #f1dfb9;
+  background: #fff9ec;
+  color: #8c651f;
+}
+
+.vol-empty {
+  padding: 45px 20px;
+  border: 1px dashed #cbded7;
+  border-radius: 15px;
+  background: #fbfdfc;
+  text-align: center;
+}
+
+.vol-empty-icon {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: #e8f4f0;
+  color: #197d65;
+  font-size: 18px;
+}
+
+.vol-empty-title {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.vol-empty-text {
+  max-width: 420px;
+  margin: 6px auto 0;
+  color: #84948f;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   LOADING
+   ========================================================= */
+
+.vol-loading {
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  color: #758781;
+  font-size: 12px;
+}
+
+.vol-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #dcece6;
+  border-top-color: #197d65;
+  border-radius: 50%;
+  animation: vol-spin 0.8s linear infinite;
+}
+
+@keyframes vol-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+
+.vol-modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(17, 46, 39, 0.42);
+  backdrop-filter: blur(4px);
+  z-index: 500;
+}
+
+.vol-modal {
+  width: min(560px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px;
+  border: 1px solid #dce9e4;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 24px 60px rgba(24, 59, 50, 0.18);
+}
+
+.vol-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 18px;
+}
+
+.vol-modal-title {
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.vol-modal-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: #f1f6f4;
+  color: #60756d;
+  font-size: 17px;
+}
+
+.vol-modal-close:hover {
+  background: #e5efeb;
+  color: #183b32;
+}
+
+.vol-modal-body {
+  color: #637770;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.vol-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 22px;
+}
+
+/* =========================================================
+   BUTTON OVERRIDES
+   ========================================================= */
+
+.volunteer-app .btn {
+  border: none;
+  border-radius: 9px;
+  padding: 10px 15px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.volunteer-app .btn-primary {
+  color: #ffffff;
+  background: #197d65;
+}
+
+.volunteer-app .btn-primary:hover {
+  background: #12634f;
+}
+
+.volunteer-app .btn-secondary {
+  color: #197d65;
+  background: #e6f5ef;
+}
+
+.volunteer-app .btn-secondary:hover {
+  background: #d8eee7;
+}
+
+.volunteer-app .btn-outline {
+  color: #197d65;
+  background: #ffffff;
+  border: 1px solid #bfd8cf;
+}
+
+.volunteer-app .btn-outline:hover {
+  background: #f0f7f4;
+}
+
+.volunteer-app .btn-danger {
+  color: #a63e47;
+  background: #fdebed;
+}
+
+.volunteer-app .btn-danger:hover {
+  background: #f9dfe2;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1150px) {
+  .vol-sidebar {
+    width: 220px;
+  }
+
+  .vol-main {
+    width: calc(100% - 220px);
+    margin-left: 220px;
+  }
+
+  .vol-content {
+    padding-left: 25px;
+    padding-right: 25px;
+  }
+
+  .vol-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .vol-task-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .vol-profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 850px) {
+  .vol-sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    border-right: none;
+    border-bottom: 1px solid #dce9e4;
+  }
+
+  .volunteer-app {
+    display: block;
+  }
+
+  .vol-main {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .vol-nav {
+    display: flex;
+    gap: 6px;
+    padding: 10px 14px;
+    overflow-x: auto;
+  }
+
+  .vol-nav-label {
+    display: none;
+  }
+
+  .vol-nav-item {
+    width: auto;
+    min-width: max-content;
+    margin: 0;
+  }
+
+  .vol-sidebar-bottom {
+    display: none;
+  }
+
+  .vol-brand {
+    height: 66px;
+  }
+
+  .vol-topbar {
+    height: 66px;
+    padding: 0 20px;
+  }
+
+  .vol-content {
+    padding: 24px 20px 40px;
+  }
+}
+
+@media (max-width: 650px) {
+  .vol-topbar-right {
+    gap: 8px;
+  }
+
+  .vol-user-info {
+    display: none;
+  }
+
+  .vol-user {
+    padding-left: 8px;
+    border-left: none;
+  }
+
+  .vol-welcome {
+    flex-direction: column;
+  }
+
+  .vol-welcome h1 {
+    font-size: 25px;
+  }
+
+  .vol-stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .vol-stat-card {
+    min-height: 120px;
+    padding: 15px;
+  }
+
+  .vol-stat-value {
+    font-size: 24px;
+  }
+
+  .vol-task-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vol-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vol-form-grid .full {
+    grid-column: auto;
+  }
+
+  .vol-profile-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .vol-profile-value {
+    max-width: 100%;
+    text-align: left;
+  }
+
+  .vol-task-details {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 430px) {
+  .vol-brand {
+    padding: 0 15px;
+  }
+
+  .vol-content {
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+
+  .vol-topbar {
+    padding: 0 13px;
+  }
+
+  .vol-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vol-section-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .vol-task-actions {
+    flex-wrap: wrap;
+  }
+}
